@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Canvas pelota</title>
+<style type="text/css">
+canvas {
+	border: 1px black solid;
+	background-color: green;
+}
+
+
+</style>
+</head>
+<body>
+	<div>
+		<b>Lleva la pelota a la meta</b>
+	</div>
+	<div>
+	</div>
+	<div id="mensajes"></div>
+	<canvas id="miCanvas" width="600px" height="400px"> </canvas>
+	<div id= "tablaPunt"></div>
+	<script type="text/javascript" src="jquery-3.3.1.min.js"></script>
+	<script type="text/javascript">
+		var canvas = document.getElementById("miCanvas");
+		var ctx = canvas.getContext("2d");
+		var img = new Image(41, 50);
+		img.src = "messi.png";
+
+		var xBola = 100;
+		var yBola = 100;
+
+		var direccion = 1; //1 es derecha y 2 abajo
+		var interval = null;
+
+		var horizontal = 1;
+		var vertical = 1;
+		
+		// variables de los obstaculos
+		var xobs1 = 0;
+		var yobs1 = 0;
+		var xobs2 = 0;
+		var yobs2 = 0;
+		
+		//variables velocidad
+		var vxobs1 = 1;
+		var vyobs2 = 1;
+		var vxBola = 1;
+		var vyBola = 1;
+		
+		//variable de puntuacion
+		var punt = 0;
+		var arrayPunt = [];
+// 		var n = 0;
+		
+		
+		//zona de meta
+		var zonaMeta = {
+			x : canvas.width - 100,
+			y : canvas.height / 4,
+			ancho : 100,
+			alto : 200,
+			color : "white"
+		};
+
+		var obs1 = {
+			x : xobs1,
+			y : yobs1,
+			ancho : 200,
+			alto : 20,
+			color : "rgb(255,150,0)",
+		};
+
+		var obs2 = {
+			x : xobs2,
+			y : yobs2,
+			ancho : 20,
+			alto : 100,
+			color : "rgb(155,150,0)",
+		};
+
+		interval2 = setInterval(obstaculo1, 20);
+		interval3 = setInterval(obstaculo2, 20);
+		interval = setInterval(avanzar, 20);
+
+		window.onload = random();
+
+		$("html").keydown(function(e) {
+
+			//alert("has pulsado: " + e.keyCode);
+			switch (e.keyCode) {
+			case 39:
+				direccion = 1;
+				break;
+			case 40:
+				direccion = 2;
+				break;
+			case 37:
+				direccion = 3;
+				break;
+			case 38:
+				direccion = 4;
+				break;
+			}
+
+		});
+
+		function avanzar() {
+			switch (direccion) {
+			case 1:
+				xBola += vxBola;
+				break;
+			case 2:
+				yBola += vyBola;
+				break;
+			case 3:
+				xBola -= vxBola;
+				break;
+			case 4:
+				yBola -= vyBola;
+				break;
+
+			default:
+				alert("Direccion no valida");
+				return;
+
+			}//end swicth
+
+			$("#mensajes").html(
+					"direccion: " + direccion + " xBola: " + xBola + " yBola: "
+							+ yBola + " Goles : " + punt);
+			// voy a comprobar si la bola ha llegado a la meta
+			if (xBola >= zonaMeta.x && xBola <= (zonaMeta.x + zonaMeta.ancho)
+					&& yBola >= zonaMeta.y
+					&& yBola <= (zonaMeta.y + zonaMeta.alto)) {
+
+				alert("Golazo! Ahora más rapido!");
+				xBola = 100;
+				yBola = 100;
+				vxobs1++;
+				vyobs2++;
+				vxBola++;
+				vyBola++;
+				punt++;
+				random();
+				avanzar();
+				obstaculo1();
+				obstaculo2();
+				
+			}
+
+			//voy a commprobar si la pelota se ha salido, o ha chocado contra un obstaculo
+			if (xBola > (zonaMeta.x + zonaMeta.ancho)) {
+				alert("Te has salido del campo por la linea de fondo! Has marcado " + punt + " goles");
+				highScores();
+			}
+			if (yBola > (2 * zonaMeta.y + zonaMeta.alto)) {
+				alert("Te has salido del campo por la banda derecha! Has marcado " + punt + " goles");
+				highScores();
+			}
+			if (xBola < 0) {
+				alert("Te has salido del campo por la linea de inicio! Has marcado " + punt + " goles");
+				highScores();
+			}
+			if (yBola < 0) {
+				alert("Te has salido del campo por la banda izquierda! Has marcado " + punt + " goles");
+				highScores();
+			}
+
+			if (xBola > xobs1 && xBola < (xobs1 + obs1.ancho) && yBola > yobs1
+					&& yBola < (yobs1 + obs1.alto)) {
+				alert("Lesionado, has marcado " + punt + " goles");
+				highScores();
+			}
+
+			if (xBola > xobs2 && xBola < (xobs2 + obs2.ancho) && yBola > yobs2
+					&& yBola < (yobs2 + obs2.alto)) {
+				alert("Lesionado, has marcado " + punt + " goles");
+				highScores();
+			}
+
+			dibujarCanvas();
+
+		}//end avanzar
+
+		function obstaculo1() {
+
+			if (xobs1 <= 0) {
+				horizontal = 2;
+			}
+
+			else if (xobs1 >= canvas.width - obs1.ancho) {
+
+				horizontal = 1;
+			}
+
+			switch (horizontal) {
+			case 1:
+				xobs1 -= vxobs1;
+				break;
+			case 2:
+				xobs1 += vxobs1 ;
+				break;
+
+			}
+		}
+
+		function obstaculo2() {
+
+			if (yobs2 <= 0) {
+				vertical = 2;
+			}
+
+			else if (yobs2 >= canvas.height - obs2.alto) {
+
+				vertical = 1;
+			}
+
+			switch (vertical) {
+			case 1:
+				yobs2 -= vyobs2;
+				break;
+			case 2:
+				yobs2 += vyobs2;
+				break;
+
+			}
+		}
+
+		function random() {
+
+			xobs1 = Math.floor(Math.random() * (canvas.width - obs1.ancho));
+			yobs1 = Math.floor(Math.random() * (canvas.height - obs1.alto));
+			xobs2 = Math.floor(Math.random() * (canvas.width - obs2.ancho));
+			yobs2 = Math.floor(Math.random() * (canvas.height - obs2.alto));
+
+		}
+		
+		function highScores (){
+			
+			if (punt >= 0){
+				var score = prompt("Introduce tu nombre para la tabla de puntuaciones");
+				$("#tablaPunt").html (score + " ha marcado " + punt + " goles");
+				arrayPunt.push("score","punt");
+				console.log("arrayPunt");
+
+// 				$("#tablaPunt").html (arrayPunt[n] + " ha marcado " + arrayPunt[n++] + " goles");
+				var replay = confirm ("Quieres jugar otra partida?")
+				if (replay==true) {
+					punt = 0;
+					vxobs1 = 1;
+				 	vyobs1 = 1;
+					vxobs2 = 1;
+					vyobs2 = 1;
+					xBola = 100;
+					yBola = 100;
+					avanzar();
+					random();
+					obstaculo1();
+					obstaculo2();
+				}
+				else {
+					clearInterval(interval);
+				}
+			}
+			else {
+				clearInterval(interval);
+			}
+		}//end highScores
+
+		function dibujarCanvas() {
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			//Para usar a messi en vez de la bola 
+			ctx.beginPath();
+			ctx.fillStyle = "rgb(0,100,255)";
+			ctx.drawImage(img, xBola, yBola);
+			ctx.fill();
+
+			ctx.beginPath();
+			ctx.fillStyle = obs1.color;
+			ctx.rect(xobs1, yobs1, obs1.ancho, obs1.alto);
+			ctx.fill();
+			//ctx.rect(x,y,ancho,alto) donde rect es rectangulo
+
+			ctx.beginPath();
+			ctx.fillStyle = obs2.color;
+			ctx.rect(xobs2, yobs2, obs2.ancho, obs2.alto);
+			ctx.fill();
+			// dibujo zona de bola
+
+			//  para usar la bola
+			// ctx.beginPath();
+			// ctx.fillStyle = "rgb(0,100,255)";
+			// ctx.arc(xBola, yBola, 21, 0, 2 * Math.PI);
+			// ctx.fill();
+
+			
+			
+			//dibujo zona de meta
+			ctx.beginPath();
+			ctx.fillStyle = zonaMeta.color;
+			ctx.rect(zonaMeta.x, zonaMeta.y, zonaMeta.ancho, zonaMeta.alto);
+			ctx.fill();
+			
+			ctx.beginPath();
+			ctx.fillStyle = "green";
+			ctx.rect(510, 110, 90, 180);
+			ctx.fill();
+			
+// 			ctx.beginPath();
+// 			ctx.fillStyle = "white";
+// 			ctx.rect(510, 110, 90, 190);
+// 			ctx.fill();
+			
+// 			x : canvas.width - 100,
+// 			y : canvas.height / 4,
+// 			ancho : 100,
+// 			alto : 200,
+// 			color : "white"
+
+		}
+	</script>
+</body>
+</html>
